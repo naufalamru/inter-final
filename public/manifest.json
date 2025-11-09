@@ -1,0 +1,40 @@
+{
+  "name": "Story Map - Extended",
+  "short_name": "StoryMap",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b7285",
+  "theme_color": "#0b7285",
+  "icons": [
+    {
+      "src": "/public/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/public/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Story",
+      "short_name": "Add",
+      "url": "#/add",
+      "description": "Add a new story"
+    },
+    {
+      "name": "Map",
+      "short_name": "Map",
+      "url": "#/map"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/public/screenshots/screen1.png",
+      "sizes": "720x720",
+      "type": "image/png"
+    }
+  ]
+}
