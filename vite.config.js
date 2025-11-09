@@ -5,6 +5,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    cssCodeSplit: false, // Ensure CSS is bundled into single file
   },
 });
 
