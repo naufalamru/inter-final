@@ -322,32 +322,62 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="./src/main.js"></script>
-  <!-- Force CSS to load - Immediate and aggressive -->
+  <!-- CRITICAL: Force CSS to load immediately -->
   <script>
-    // Immediately try all possible paths
-    ['/inter-final/public/styles.css', './public/styles.css', 'public/styles.css'].forEach(path => {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = path;
-      document.head.appendChild(link);
-    });
-    
-    // Also try to fetch and inject CSS directly
-    Promise.race([
-      fetch('/inter-final/public/styles.css'),
-      fetch('./public/styles.css'),
-      fetch('public/styles.css')
-    ])
-    .then(r => r.ok ? r.text() : '')
-    .then(css => {
-      if (css && !document.querySelector('style[data-injected]')) {
-        const style = document.createElement('style');
-        style.setAttribute('data-injected', 'true');
-        style.textContent = css;
-        document.head.insertBefore(style, document.head.firstChild);
+    (function() {
+      // Check if CSS is already applied
+      function hasCSSApplied() {
+        const bodyStyle = window.getComputedStyle(document.body);
+        return bodyStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' && 
+               bodyStyle.backgroundColor !== 'transparent' &&
+               bodyStyle.backgroundColor !== 'rgb(255, 255, 255)';
       }
-    })
-    .catch(() => {});
+      
+      // If CSS not applied, try to load it
+      if (!hasCSSApplied()) {
+        // Strategy 1: Try to load from public folder
+        const cssPaths = [
+          '/inter-final/public/styles.css',
+          './public/styles.css',
+          'public/styles.css',
+          '/public/styles.css',
+          window.location.origin + '/inter-final/public/styles.css'
+        ];
+        
+        cssPaths.forEach(path => {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = path;
+          link.onload = () => console.log('CSS loaded from:', path);
+          link.onerror = () => console.warn('Failed to load CSS from:', path);
+          document.head.appendChild(link);
+        });
+        
+        // Strategy 2: Fetch and inject CSS directly
+        setTimeout(() => {
+          if (!hasCSSApplied()) {
+            const fetchPaths = [
+              '/inter-final/public/styles.css',
+              './public/styles.css',
+              'public/styles.css'
+            ];
+            
+            Promise.allSettled(
+              fetchPaths.map(path => fetch(path).then(r => r.ok ? r.text() : null))
+            ).then(results => {
+              const css = results.find(r => r.status === 'fulfilled' && r.value)?.value;
+              if (css && !document.querySelector('style[data-injected]')) {
+                const style = document.createElement('style');
+                style.setAttribute('data-injected', 'true');
+                style.textContent = css;
+                document.head.insertBefore(style, document.head.firstChild);
+                console.log('CSS injected directly');
+              }
+            });
+          }
+        }, 500);
+      }
+    })();
   </script>
 </body>
 </html>
