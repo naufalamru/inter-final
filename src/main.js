@@ -51,7 +51,8 @@ window.addEventListener('DOMContentLoaded', () => {
 // 🔹 Shortcut keyboard: tekan 'M' untuk langsung ke peta
 // ==========================================================
 window.addEventListener('keydown', (e) => {
-  if (e.key.toLowerCase() === 'm' && !e.metaKey && !e.ctrlKey) {
+  const key = e.key ? e.key.toLowerCase() : '';
+  if (key === 'm' && !e.metaKey && !e.ctrlKey) {
     location.hash = '#/map';
   }
 });
