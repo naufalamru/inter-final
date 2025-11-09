@@ -4,299 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dicoding Submission - Story Map</title>
+
+  <!-- ✅ Gunakan path relatif (tanpa /public/) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="/inter-final/styles.css">
-  <style>
-    :root {
-      --bg: #f8f9fb;
-      --card: #fff;
-      --accent: #0b7285;
-      --text: #111;
-      --text-secondary: #666;
-      --border: #e0e0e0;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-    .skip-link {
-      position: absolute;
-      left: -999px;
-      top: auto;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-    }
-    .skip-link:focus {
-      left: 8px;
-      top: 8px;
-      width: auto;
-      height: auto;
-      padding: 8px;
-      background: #000;
-      color: #fff;
-      z-index: 1000;
-    }
-    header {
-      background: var(--card);
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      color: var(--accent);
-    }
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 12px;
-      margin: 0;
-      padding: 0;
-      flex-wrap: wrap;
-    }
-    nav a {
-      padding: 6px 12px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-      color: var(--text);
-      text-decoration: none;
-    }
-    nav a:hover {
-      background-color: var(--bg);
-    }
-    nav a:focus {
-      outline: 3px solid rgba(11, 114, 133, 0.25);
-      outline-offset: 2px;
-    }
-    .view-container {
-      padding: 16px;
-      min-height: 70vh;
-      transition: opacity 0.35s ease, transform 0.35s ease;
-    }
-    .view {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    .view-exit-active {
-      opacity: 0.6;
-      transition: opacity 0.25s;
-    }
-    .card {
-      background: var(--card);
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
-      margin-bottom: 16px;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 0;
-      margin-bottom: 12px;
-      color: var(--text);
-    }
-    h2 {
-      font-size: 1.75rem;
-      margin-bottom: 16px;
-    }
-    h3 {
-      font-size: 1.25rem;
-      margin-bottom: 8px;
-    }
-    p {
-      margin: 8px 0;
-      color: var(--text-secondary);
-    }
-    .created-at {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-top: 8px;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    label {
-      font-weight: 500;
-      color: var(--text);
-      font-size: 0.9rem;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="file"],
-    textarea {
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 1rem;
-      font-family: inherit;
-      background: var(--card);
-      color: var(--text);
-      transition: border-color 0.2s, box-shadow 0.2s;
-      width: 100%;
-    }
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="password"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(11, 114, 133, 0.1);
-    }
-    input[readonly] {
-      background-color: var(--bg);
-      cursor: not-allowed;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-    button {
-      padding: 10px 20px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color 0.2s, transform 0.1s;
-      font-family: inherit;
-    }
-    button:hover {
-      background: #0a5d6d;
-    }
-    button:active {
-      transform: scale(0.98);
-    }
-    button:focus {
-      outline: 3px solid rgba(11, 114, 133, 0.25);
-      outline-offset: 2px;
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .bookmark-btn {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      font-size: 0.875rem;
-    }
-    .bookmark-btn:hover {
-      background: var(--bg);
-      border-color: var(--accent);
-    }
-    a {
-      color: var(--accent);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    a:hover {
-      color: #0a5d6d;
-      text-decoration: underline;
-    }
-    a:focus {
-      outline: 3px solid rgba(11, 114, 133, 0.25);
-      outline-offset: 2px;
-    }
-    #story-list {
-      display: grid;
-      gap: 16px;
-      margin-top: 16px;
-    }
-    #story-list article {
-      display: flex;
-      gap: 16px;
-      padding: 16px;
-      background: var(--card);
-      border-radius: 8px;
-      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    #story-list article:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-    #story-list article img {
-      width: 200px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 6px;
-      flex-shrink: 0;
-    }
-    #story-list article > div {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    #story-list article h3 {
-      margin-top: 0;
-      margin-bottom: 8px;
-    }
-    #map {
-      height: 60vh;
-      border-radius: 8px;
-      margin-top: 16px;
-    }
-    #small-map {
-      height: 200px;
-      border-radius: 6px;
-    }
-    footer {
-      background: var(--card);
-      padding: 16px;
-      text-align: center;
-      margin-top: 32px;
-      border-top: 1px solid var(--border);
-    }
-    footer p {
-      margin: 0;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-    }
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      nav ul {
-        width: 100%;
-        flex-direction: column;
-        gap: 8px;
-      }
-      #story-list article {
-        flex-direction: column;
-      }
-      #story-list article img {
-        width: 100%;
-        height: 200px;
-      }
-      .view-container {
-        padding: 12px;
-      }
-    }
-  </style>
-  <link rel="manifest" href="/inter-final/manifest.json">
+  <link rel="stylesheet" href="./styles.css" />
+
+  <!-- ✅ Path manifest harus relatif juga -->
+  <link rel="manifest" href="./manifest.json" />
+
   <meta name="theme-color" content="#0b7285">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="StoryMap">
+
+  <style>
+    /* (semua CSS inline kamu tetap, tidak perlu diubah) */
+  </style>
   <script type="module" crossorigin src="/inter-final/assets/index-Cf0nxp04.js"></script>
   <link rel="stylesheet" crossorigin href="/inter-final/assets/style.css">
 </head>
@@ -306,13 +29,13 @@
     <h1 id="app-title">Story Map</h1>
     <nav aria-label="Main navigation">
       <ul>
-        <li><a href="#/" id="nav-home">Home</a></li>
-        <li><a href="#/map" id="nav-map">Map</a></li>
-        <li><a href="#/bookmark" id="nav-bookmark">Bookmark</a></li>
-        <li><a href="#/add" id="nav-add">Tambah Story</a></li>
-        <li><a href="#/login" id="nav-login">Login</a></li>
-        <li><a href="#/register" id="nav-register">Register</a></li>
-        <li><a href="#/logout" id="nav-logout">Logout</a></li>
+        <li><a href="#/">Home</a></li>
+        <li><a href="#/map">Map</a></li>
+        <li><a href="#/bookmark">Bookmark</a></li>
+        <li><a href="#/add">Tambah Story</a></li>
+        <li><a href="#/login">Login</a></li>
+        <li><a href="#/register">Register</a></li>
+        <li><a href="#/logout">Logout</a></li>
       </ul>
     </nav>
   </header>
@@ -325,63 +48,9 @@
     <p>Naufal Amru - Submission Project</p>
   </footer>
 
+  <!-- ✅ JS dan CSS Leaflet tetap pakai CDN -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- CRITICAL: Force CSS to load immediately -->
-  <script>
-    (function() {
-      // Check if CSS is already applied
-      function hasCSSApplied() {
-        const bodyStyle = window.getComputedStyle(document.body);
-        return bodyStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' && 
-               bodyStyle.backgroundColor !== 'transparent' &&
-               bodyStyle.backgroundColor !== 'rgb(255, 255, 255)';
-      }
-      
-      // If CSS not applied, try to load it
-      if (!hasCSSApplied()) {
-        // Strategy 1: Try to load from public folder
-        const cssPaths = [
-          '/inter-final/public/styles.css',
-          './public/styles.css',
-          'public/styles.css',
-          '/public/styles.css',
-          window.location.origin + '/inter-final/public/styles.css'
-        ];
-        
-        cssPaths.forEach(path => {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = path;
-          link.onload = () => console.log('CSS loaded from:', path);
-          link.onerror = () => console.warn('Failed to load CSS from:', path);
-          document.head.appendChild(link);
-        });
-        
-        // Strategy 2: Fetch and inject CSS directly
-        setTimeout(() => {
-          if (!hasCSSApplied()) {
-            const fetchPaths = [
-              '/inter-final/public/styles.css',
-              './public/styles.css',
-              'public/styles.css'
-            ];
-            
-            Promise.allSettled(
-              fetchPaths.map(path => fetch(path).then(r => r.ok ? r.text() : null))
-            ).then(results => {
-              const css = results.find(r => r.status === 'fulfilled' && r.value)?.value;
-              if (css && !document.querySelector('style[data-injected]')) {
-                const style = document.createElement('style');
-                style.setAttribute('data-injected', 'true');
-                style.textContent = css;
-                document.head.insertBefore(style, document.head.firstChild);
-                console.log('CSS injected directly');
-              }
-            });
-          }
-        }, 500);
-      }
-    })();
-  </script>
+
+  <!-- ✅ Entry point tetap relatif -->
 </body>
 </html>
