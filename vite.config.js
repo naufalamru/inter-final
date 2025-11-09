@@ -3,16 +3,17 @@ import { copyFileSync } from 'fs';
 import { resolve } from 'path';
 
 export default defineConfig({
-  base: '/inter-final/', // ← ini WAJIB ADA
+  base: '/inter-final/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     cssCodeSplit: false,
     rollupOptions: {
-      input: resolve(__dirname, 'index.html'),
       output: {
-        assetFileNames: 'assets/[name].[ext]',
-        entryFileNames: 'assets/[name].[ext]',
+        // entryFileNames tidak pakai [ext]
+        entryFileNames: 'assets/[name].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name].[ext]'
       },
     },
   },
