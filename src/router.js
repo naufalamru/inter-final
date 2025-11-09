@@ -4,6 +4,7 @@ import AddStoryView from './views/AddStoryView.js';
 import LoginView from './views/LoginView.js';
 import RegisterView from './views/RegisterView.js';
 import LogoutView from './views/LogoutView.js';
+import BookmarkView from './views/BookmarkView.js';
 
 export default function initRouter(app, controller) {
   // Fungsi untuk update navbar berdasarkan status login
@@ -35,6 +36,7 @@ export default function initRouter(app, controller) {
     else if (hash.startsWith('#/login')) ViewClass = LoginView;
     else if (hash.startsWith('#/register')) ViewClass = RegisterView;
     else if (hash.startsWith('#/logout')) ViewClass = LogoutView;
+    else if (hash.startsWith('#/bookmark')) ViewClass = BookmarkView;
 
     const view = new ViewClass(controller);
 

@@ -8,7 +8,8 @@ const VAPID_PUBLIC = 'BCCs2eonMI-6H2ctvFaWg-UYdDv387Vno_bzUzALpB442r2lCnsHmtrx8b
 export function initPWA () {
   // Register service worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
+    const swPath = import.meta.env.PROD ? '/inter-final/sw.js' : './sw.js';
+    navigator.serviceWorker.register(swPath).then(reg => {
       console.log('SW registered', reg);
     }).catch(err => console.warn('SW registration failed', err));
   }

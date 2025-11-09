@@ -27,7 +27,8 @@ export default class HomeView{
             card.tabIndex = 0
             const img = document.createElement('img')
             img.alt = s.photoUrl ? `Foto cerita ${s.name}` : ''
-            img.src = s.photoUrl || '/public/assets/placeholder.png'
+            const placeholderPath = import.meta.env.PROD ? '/inter-final/public/assets/placeholder.png' : '/public/assets/placeholder.png';
+            img.src = s.photoUrl || placeholderPath;
             img.width = 200
             img.height = 120
             card.appendChild(img)
