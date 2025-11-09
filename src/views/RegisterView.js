@@ -1,3 +1,4 @@
+
 export default class RegisterView {
   static viewName = 'Register';
   constructor(controller) { this.controller = controller; }
