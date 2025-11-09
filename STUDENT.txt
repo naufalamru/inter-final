@@ -1,4 +1,4 @@
 MAPBOX_TOKEN=
 AUTH_TOKEN=Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyLWZKSjduUEwzZ2NEYlViVk4iLCJpYXQiOjE3NjExNTIzMjB9.nendJFqBBBTgYljgUvoBe7LFgG3W6WPXIqOYEX-0hmY
 STORY_API_BASE=https://story-api.dicoding.dev/v1
-DEPLOYMENT_URL= https://naufalamru.github.io/intermediate_second-project/
+DEPLOYMENT_URL=https://naufalamru.github.io/inter-final/
