@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dicoding Submission - Story Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="./public/styles.css">
   <link rel="stylesheet" href="/inter-final/public/styles.css">
   <style>
     :root {
@@ -321,31 +322,45 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="./src/main.js"></script>
-  <!-- Ensure CSS loads - Multiple fallbacks -->
+  <!-- Force CSS to load - Multiple strategies -->
   <script>
     (function() {
-      // Check if CSS is already loaded
-      const hasStyles = document.querySelector('style') || 
-                       document.querySelector('link[href*="styles.css"]') ||
-                       document.querySelector('link[href*=".css"]');
+      // Strategy 1: Try to load CSS from public folder
+      const paths = [
+        '/inter-final/public/styles.css',
+        './public/styles.css',
+        'public/styles.css',
+        '/public/styles.css'
+      ];
       
-      if (!hasStyles) {
-        // Try multiple paths
-        const cssPaths = [
-          '/inter-final/public/styles.css',
-          './public/styles.css',
-          '/public/styles.css',
-          'public/styles.css'
-        ];
+      paths.forEach(path => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = path;
+        document.head.appendChild(link);
+      });
+      
+      // Strategy 2: If CSS not loaded after 200ms, fetch and inject
+      setTimeout(() => {
+        const hasCSS = document.querySelector('style[data-injected]') || 
+                      Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+                        .some(link => link.sheet && link.sheet.cssRules.length > 0);
         
-        cssPaths.forEach(path => {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = path;
-          link.onerror = () => {}; // Silently fail and try next
-          document.head.appendChild(link);
-        });
-      }
+        if (!hasCSS) {
+          // Fetch CSS and inject as inline style
+          fetch('/inter-final/public/styles.css')
+            .then(r => r.ok ? r.text() : fetch('./public/styles.css').then(r2 => r2.ok ? r2.text() : ''))
+            .then(css => {
+              if (css) {
+                const style = document.createElement('style');
+                style.setAttribute('data-injected', 'true');
+                style.textContent = css;
+                document.head.appendChild(style);
+              }
+            })
+            .catch(() => {});
+        }
+      }, 200);
     })();
   </script>
 </body>
