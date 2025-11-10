@@ -19,34 +19,35 @@ export async function subscribeUser(vapidPublicKey) {
     });
     console.log('Push subscribed', sub);
 
-    // 🔧 FIX: Buat payload manual tanpa expirationTime
+    // ambil key dan ubah ke base64 string
+    const rawKey = sub.getKey('p256dh');
+    const key = btoa(String.fromCharCode.apply(null, new Uint8Array(rawKey)));
+
+    const rawAuth = sub.getKey('auth');
+    const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(rawAuth)));
+
+    // buat payload sesuai dokumentasi Dicoding
     const payload = {
       endpoint: sub.endpoint,
       keys: {
-        p256dh: btoa(
-          String.fromCharCode.apply(
-            null,
-            new Uint8Array(sub.getKey('p256dh'))
-          )
-        ),
-        auth: btoa(
-          String.fromCharCode.apply(
-            null,
-            new Uint8Array(sub.getKey('auth'))
-          )
-        ),
-      },
+        p256dh: key,
+        auth: auth
+      }
     };
 
-    // Kirim payload yang sudah dibersihkan
-    await fetch(window.STORY_API_BASE + '/notifications/subscribe', {
+    const token = window.AUTH_TOKEN || localStorage.getItem('token');
+
+    const res = await fetch('https://story-api.dicoding.dev/v1/notifications/subscribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': window.AUTH_TOKEN
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload)
-    }).catch(e => console.warn('subscription send failed', e));
+    });
+
+    const data = await res.json();
+    console.log('Subscribe response:', data);
 
     return sub;
   } catch (err) {
@@ -54,7 +55,6 @@ export async function subscribeUser(vapidPublicKey) {
     throw err;
   }
 }
-
 
 export async function unsubscribeUser() {
   try {
