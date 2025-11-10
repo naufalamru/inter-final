@@ -1,20 +1,19 @@
-const CACHE_NAME = 'storymap-v4';
-const DYNAMIC_CACHE = 'storymap-dynamic-v4';
+const CACHE_NAME = 'storymap-v5';
+const DYNAMIC_CACHE = 'storymap-dynamic-v5';
 
-// ✅ gunakan path absolut yang sesuai GitHub Pages
 const STATIC_FILES = [
   '/inter-final/',
   '/inter-final/index.html',
   '/inter-final/styles.css',
   '/inter-final/manifest.json',
-  '/inter-final/icon.png'
+  '/inter-final/icon.png',
+  '/inter-final/index.js'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(async cache => {
-        // cache file satu-satu supaya tidak gagal total
         for (const file of STATIC_FILES) {
           try {
             await cache.add(file);
@@ -47,28 +46,39 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET') return;
   if (url.pathname.endsWith('sw.js')) return;
 
-  // ✅ fallback saat refresh
+  // ✅ Fallback navigasi: tangkap semua mode:navigate
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('/inter-final/index.html'))
+      fetch(req)
+        .then(res => {
+          // kalau berhasil online
+          return res;
+        })
+        .catch(() =>
+          caches.match('/inter-final/index.html').then(cached => cached || Response.error())
+        )
     );
     return;
   }
 
+  // ✅ Untuk semua asset lainnya
   event.respondWith(
     caches.match(req).then(cached => {
       if (cached) return cached;
-      return fetch(req).then(res => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(DYNAMIC_CACHE).then(c => c.put(req, clone));
-        }
-        return res;
-      }).catch(() => caches.match('/inter-final/index.html'));
+      return fetch(req)
+        .then(res => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(DYNAMIC_CACHE).then(c => c.put(req, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match('/inter-final/index.html'));
     })
   );
 });
 
+// Push notification handler (optional)
 self.addEventListener('push', event => {
   let data = { title: 'Story Map', body: 'You have a new notification', url: '/inter-final/' };
   try { if (event.data) data = event.data.json(); } catch {}
