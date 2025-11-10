@@ -39,34 +39,33 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
-  
+
   // Skip caching for API requests
-  if (url.pathname.includes('/v1/') || url.hostname.includes('story-api.dicoding.dev')) {
+  if (url.pathname.includes('/v1/') || url.hostname.includes('story-api.dicoding.dev')) return;
+
+  // Skip non-GET
+  if (req.method !== 'GET') return;
+
+  // Skip service worker itself
+  if (url.pathname.includes('/sw.js')) return;
+
+  // ✅ Tambahan: jika request navigasi (refresh halaman)
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).catch(() => caches.match('/inter-final/index.html') || caches.match('/index.html'))
+    );
     return;
   }
-  
-  // Skip caching for non-GET requests
-  if (req.method !== 'GET') return;
-  
-  // Skip caching for service worker itself
-  if (url.pathname.includes('/sw.js')) return;
-  
+
   event.respondWith(
     caches.match(req).then(cached => {
       if (cached) return cached;
       return fetch(req).then(res => {
-        // Only cache successful responses
         if (res.status === 200) {
-          return caches.open(DYNAMIC_CACHE).then(cache => {
-            cache.put(req, res.clone());
-            return res;
-          });
+          caches.open(DYNAMIC_CACHE).then(cache => cache.put(req, res.clone()));
         }
         return res;
-      }).catch(() => {
-        // fallback to offline page or return cached root
-        return caches.match('/inter-final/index.html') || caches.match('/index.html');
-      });
+      }).catch(() => caches.match('/inter-final/index.html') || caches.match('/index.html'));
     })
   );
 });
