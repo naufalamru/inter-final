@@ -87,59 +87,37 @@ export async function unsubscribeUser() {
       return;
     }
 
-    // ambil token dari window atau localStorage
     const rawToken = window.AUTH_TOKEN || localStorage.getItem('token') || '';
-    if (!rawToken) {
-      console.error('Token tidak ditemukan. Pastikan user sudah login sebelum unsubscribe.');
-      // tetap coba unsubscribe lokal agar browser tidak menyimpan subscription
-      await sub.unsubscribe().catch(e => console.warn('Local unsubscribe error', e));
-      return;
-    }
     const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
+    const body = JSON.stringify({ subscription: JSON.stringify({ endpoint: sub.endpoint }) });
 
-    // badan request sesuai dokumentasi Dicoding: { endpoint: sub.endpoint }
-    const body = JSON.stringify({ endpoint: sub.endpoint });
-
-    // Kirim request ke endpoint yang benar
     const url = 'https://story-api.dicoding.dev/v1/notifications/unsubscribe';
 
-    // lakukan fetch, tangani response dengan baik
-    const res = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token
-      },
-      body
-    });
-
-    if (!res.ok) {
-      // tampilkan pesan server agar mudah debugging
-      const text = await res.text().catch(() => null);
-      console.error('Unsubscribe API gagal:', res.status, res.statusText, text);
-      // tetap coba unsubscribe di client agar tidak meninggalkan subscription di browser
-      await sub.unsubscribe().catch(e => console.warn('Local unsubscribe failed after API error', e));
-      return;
-    }
-
-    console.log('Unsubscribe API response:', await res.json().catch(() => 'no-json'));
-    // hapus subscription di browser
-    const unsubbed = await sub.unsubscribe();
-    console.log('Push unsubscribed (client):', unsubbed);
-  } catch (err) {
-    console.error('Failed to unsubscribe', err);
-    // jika error, coba tetap unsubscribe di client
     try {
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      if (sub) {
-        await sub.unsubscribe();
-        console.log('Push unsubscribed (client, after error).');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.warn('Unsubscribe API gagal (mungkin CORS):', res.status, text);
+      } else {
+        console.log('Unsubscribe API sukses:', await res.text());
       }
     } catch (e) {
-      console.warn('Failed to cleanup local subscription after error', e);
+      console.warn('Unsubscribe gagal karena CORS, lanjut unsubscribe lokal.');
     }
+
+    // tetap hapus subscription di client
+    await sub.unsubscribe();
+    console.log('Push unsubscribed (client).');
+  } catch (err) {
+    console.error('Failed to unsubscribe', err);
   }
 }
 
