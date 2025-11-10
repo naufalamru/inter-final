@@ -59,10 +59,26 @@ export default function initRouter(app, controller) {
     updateNavbar();
   }
 
-  window.addEventListener('hashchange', renderRoute);
-  window.addEventListener('load', renderRoute);
+   window.addEventListener('hashchange', renderRoute);
+  window.addEventListener('load', () => {
+    // Pastikan hash default kalau kosong
+    if (!location.hash) {
+      location.hash = '#/';
+    }
+    renderRoute();
+  });
+
+  // ✅ Fallback: jalankan renderRoute jika dokumen sudah siap
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (!location.hash) {
+      location.hash = '#/';
+    }
+    renderRoute();
+  }
+
   // Update navbar saat load pertama kali
   updateNavbar();
 
   return { renderRoute };
 }
+
