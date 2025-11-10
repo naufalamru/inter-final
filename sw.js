@@ -1,58 +1,54 @@
-// cache names
-const CACHE_NAME = 'storymap-v1';
-const DYNAMIC_CACHE = 'storymap-dynamic-v1';
+const CACHE_NAME = 'storymap-v3';
+const DYNAMIC_CACHE = 'storymap-dynamic-v3';
+
+// ✅ Gunakan path RELATIF, bukan absolute
 const STATIC_FILES = [
-  '/inter-final/',
-  '/inter-final/index.html',
-  '/inter-final/src/styles.css'
+  './',
+  './index.html',
+  './styles.css',
+  './manifest.json',
+  './icon.png'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_FILES).catch(err => {
-        console.warn('Cache addAll failed:', err);
-      });
-    }).then(() => {
-      self.skipWaiting();
-    })
+    caches.open(CACHE_NAME).then(async (cache) => {
+      try {
+        await cache.addAll(STATIC_FILES);
+      } catch (err) {
+        console.warn('Cache addAll failed, continuing...', err);
+      }
+    }).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME && cacheName !== DYNAMIC_CACHE) {
-            return caches.delete(cacheName);
+    caches.keys().then(names =>
+      Promise.all(
+        names.map(name => {
+          if (name !== CACHE_NAME && name !== DYNAMIC_CACHE) {
+            return caches.delete(name);
           }
         })
-      );
-    }).then(() => {
-      return self.clients.claim();
-    })
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-// basic cache on fetch
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Skip caching for API requests
+  // ✅ Jangan cache API
   if (url.pathname.includes('/v1/') || url.hostname.includes('story-api.dicoding.dev')) return;
-
-  // Skip non-GET
   if (req.method !== 'GET') return;
+  if (url.pathname.endsWith('sw.js')) return;
 
-  // Skip service worker itself
-  if (url.pathname.includes('/sw.js')) return;
-
-  // ✅ Tambahan: jika request navigasi (refresh halaman)
+  // ✅ Fallback untuk navigasi (refresh)
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('/inter-final/index.html') || caches.match('/index.html'))
+      fetch(req).catch(() => caches.match('./index.html'))
     );
     return;
   }
@@ -60,30 +56,32 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(req).then(cached => {
       if (cached) return cached;
-      return fetch(req).then(res => {
-        if (res.status === 200) {
-          caches.open(DYNAMIC_CACHE).then(cache => cache.put(req, res.clone()));
-        }
-        return res;
-      }).catch(() => caches.match('/inter-final/index.html') || caches.match('/index.html'));
+      return fetch(req)
+        .then(res => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(DYNAMIC_CACHE).then(c => c.put(req, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match('./index.html'));
     })
   );
 });
 
-// push event - show notification using payload data if present
 self.addEventListener('push', event => {
-  let data = { title: 'Story Map', body: 'You have a new notification', url: '/' };
+  let data = { title: 'Story Map', body: 'You have a new notification', url: './' };
   try {
     if (event.data) data = event.data.json();
-  } catch(e){}
+  } catch (e) {}
   const options = {
     body: data.body,
-    icon: data.icon || '/inter-final/public/icons/icon-192.png',
-    badge: data.badge || '/inter-final/public/icons/icon-192.png',
-    data: { url: data.url || '/inter-final/' },
+    icon: data.icon || './icon-192.png',
+    badge: data.badge || './icon-192.png',
+    data: { url: data.url || './' },
     actions: [
-      {action: 'open', title: 'Lihat'},
-      {action: 'dismiss', title: 'Tutup'}
+      { action: 'open', title: 'Lihat' },
+      { action: 'dismiss', title: 'Tutup' }
     ]
   };
   event.waitUntil(self.registration.showNotification(data.title, options));
@@ -91,10 +89,6 @@ self.addEventListener('push', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : '/inter-final/';
-  if (event.action === 'open') {
-    event.waitUntil(clients.openWindow(url));
-  } else {
-    event.waitUntil(clients.openWindow(url));
-  }
+  const url = event.notification.data?.url || './';
+  event.waitUntil(clients.openWindow(url));
 });
