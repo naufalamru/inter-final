@@ -26,27 +26,19 @@ export async function subscribeUser(vapidPublicKey) {
       console.error('Token tidak ditemukan. Pastikan user sudah login.');
       return;
     }
-
     const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
 
-    // Encode keys ke Base64 dengan cara yang benar
-    const p256dh = btoa(
-      String.fromCharCode.apply(null, new Uint8Array(sub.getKey('p256dh')))
-    );
-    const auth = btoa(
-      String.fromCharCode.apply(null, new Uint8Array(sub.getKey('auth')))
-    );
-
-    // Payload sesuai dokumentasi Dicoding
+    // Bentuk payload sesuai API Dicoding
     const payload = {
       endpoint: sub.endpoint,
-      keys: { p256dh, auth }
+      keys: {
+        p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
+        auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))))
+      }
     };
 
-    console.log('Payload dikirim:', payload);
-    console.log('Authorization header:', token);
+    console.log('Payload dikirim ke server:', payload);
 
-    // 🔥 Pastikan endpoint URL BENAR
     const res = await fetch('https://story-api.dicoding.dev/v1/notifications/subscribe', {
       method: 'POST',
       headers: {
@@ -56,21 +48,20 @@ export async function subscribeUser(vapidPublicKey) {
       body: JSON.stringify(payload)
     });
 
+    const text = await res.text();
+    console.log('Server response:', text);
+
     if (!res.ok) {
-      const text = await res.text();
-      console.error('Gagal subscribe:', res.status, res.statusText, text);
-    } else {
-      const data = await res.json();
-      console.log('Berhasil subscribe:', data);
+      throw new Error(`Gagal subscribe: ${res.status} ${res.statusText}`);
     }
 
+    console.log('Berhasil subscribe!');
     return sub;
   } catch (err) {
-    console.error('Failed to subscribe', err);
+    console.error('Failed to subscribe:', err);
     throw err;
   }
 }
-
 
 export async function unsubscribeUser() {
   try {
