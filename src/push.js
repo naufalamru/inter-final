@@ -18,18 +18,43 @@ export async function subscribeUser(vapidPublicKey) {
       applicationServerKey: await urlBase64ToUint8Array(vapidPublicKey)
     });
     console.log('Push subscribed', sub);
-    // send subscription to server for demo; the story-api provides endpoint
+
+    // 🔧 FIX: Buat payload manual tanpa expirationTime
+    const payload = {
+      endpoint: sub.endpoint,
+      keys: {
+        p256dh: btoa(
+          String.fromCharCode.apply(
+            null,
+            new Uint8Array(sub.getKey('p256dh'))
+          )
+        ),
+        auth: btoa(
+          String.fromCharCode.apply(
+            null,
+            new Uint8Array(sub.getKey('auth'))
+          )
+        ),
+      },
+    };
+
+    // Kirim payload yang sudah dibersihkan
     await fetch(window.STORY_API_BASE + '/notifications/subscribe', {
       method: 'POST',
-      headers: {'Content-Type':'application/json', 'Authorization': window.AUTH_TOKEN},
-      body: JSON.stringify(sub)
-    }).catch(e=>console.warn('subscription send failed',e));
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': window.AUTH_TOKEN
+      },
+      body: JSON.stringify(payload)
+    }).catch(e => console.warn('subscription send failed', e));
+
     return sub;
   } catch (err) {
     console.error('Failed to subscribe', err);
     throw err;
   }
 }
+
 
 export async function unsubscribeUser() {
   try {
