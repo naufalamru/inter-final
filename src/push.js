@@ -83,7 +83,7 @@ export async function unsubscribeUser() {
     const body = JSON.stringify({ endpoint: sub.endpoint });
 
     // Kirim request ke endpoint yang benar
-    const url = (window.STORY_API_BASE || 'https://story-api.dicoding.dev/v1') + '/notifications/unsubscribe';
+    const url = 'https://story-api.dicoding.dev/v1/notifications/unsubscribe';
 
     // lakukan fetch, tangani response dengan baik
     const res = await fetch(url, {
