@@ -13,6 +13,8 @@ export async function urlBase64ToUint8Array(base64String) {
 export async function subscribeUser(vapidPublicKey) {
   try {
     const reg = await navigator.serviceWorker.ready;
+
+    // Buat langganan push
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: await urlBase64ToUint8Array(vapidPublicKey)
@@ -20,7 +22,7 @@ export async function subscribeUser(vapidPublicKey) {
 
     console.log('Push subscribed', sub);
 
-    // Ambil token login
+    // Ambil token login (dari window atau localStorage)
     const rawToken = window.AUTH_TOKEN || localStorage.getItem('token');
     if (!rawToken) {
       console.error('Token tidak ditemukan. Pastikan user sudah login.');
@@ -28,17 +30,28 @@ export async function subscribeUser(vapidPublicKey) {
     }
     const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
 
-    // Bentuk payload sesuai API Dicoding
+    // Ambil key dari subscription
+    const p256dhKey = sub.getKey('p256dh');
+    const authKey = sub.getKey('auth');
+
+    if (!p256dhKey || !authKey) {
+      console.error('Kunci subscription tidak valid:', p256dhKey, authKey);
+      return;
+    }
+
+    // Bentuk payload sesuai dokumentasi Dicoding
     const payload = {
       endpoint: sub.endpoint,
       keys: {
-        p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
-        auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))))
+        p256dh: btoa(String.fromCharCode(...new Uint8Array(p256dhKey))),
+        auth: btoa(String.fromCharCode(...new Uint8Array(authKey)))
       }
     };
 
-    console.log('Payload dikirim ke server:', payload);
+    console.log('Payload final sebelum dikirim:', JSON.stringify(payload, null, 2));
+    console.log('Authorization header:', token);
 
+    // Kirim request ke API Dicoding
     const res = await fetch('https://story-api.dicoding.dev/v1/notifications/subscribe', {
       method: 'POST',
       headers: {
@@ -49,16 +62,17 @@ export async function subscribeUser(vapidPublicKey) {
     });
 
     const text = await res.text();
-    console.log('Server response:', text);
+    console.log('Server response:', text, 'status:', res.status);
 
     if (!res.ok) {
-      throw new Error(`Gagal subscribe: ${res.status} ${res.statusText}`);
+      console.error('Gagal subscribe:', res.status, res.statusText, text);
+    } else {
+      console.log('Berhasil subscribe!');
     }
 
-    console.log('Berhasil subscribe!');
     return sub;
   } catch (err) {
-    console.error('Failed to subscribe:', err);
+    console.error('Failed to subscribe', err);
     throw err;
   }
 }
