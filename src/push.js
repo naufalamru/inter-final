@@ -19,19 +19,22 @@ export async function subscribeUser(vapidPublicKey) {
     });
     console.log('Push subscribed', sub);
 
-    // ambil key dan ubah ke base64
-    const rawKey = sub.getKey('p256dh');
-    const key = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
-    const rawAuth = sub.getKey('auth');
-    const auth = btoa(String.fromCharCode(...new Uint8Array(rawAuth)));
+    // Ambil token login
+    const rawToken = window.AUTH_TOKEN || localStorage.getItem('token');
+    if (!rawToken) {
+      console.error('Token tidak ditemukan. Pastikan user sudah login.');
+      return;
+    }
+    const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
 
+    // Format sesuai dokumentasi Dicoding
     const payload = {
       endpoint: sub.endpoint,
-      keys: { p256dh: key, auth: auth }
+      keys: {
+        p256dh: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')))),
+        auth: btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))))
+      }
     };
-
-    const rawToken = window.AUTH_TOKEN || localStorage.getItem('token');
-    const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
 
     console.log('Payload dikirim:', payload);
     console.log('Authorization header:', token);
@@ -46,10 +49,11 @@ export async function subscribeUser(vapidPublicKey) {
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      console.error('Server response:', text);
+      const errText = await res.text();
+      console.error('Gagal subscribe:', res.status, res.statusText, errText);
     } else {
-      console.log('Berhasil subscribe');
+      const data = await res.json();
+      console.log('Berhasil subscribe:', data);
     }
 
     return sub;
