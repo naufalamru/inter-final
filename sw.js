@@ -6,8 +6,6 @@ const STATIC_FILES = [
   '/inter-final/index.html',
   '/inter-final/styles.css',
   '/inter-final/manifest.json',
-  '/inter-final/icon.png',
-  '/inter-final/index.js'
 ];
 
 self.addEventListener('install', event => {
