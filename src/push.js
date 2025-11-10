@@ -19,14 +19,13 @@ export async function subscribeUser(vapidPublicKey) {
     });
     console.log('Push subscribed', sub);
 
-    // ambil key dan ubah ke base64 string
+    // Ambil key dan ubah ke base64
     const rawKey = sub.getKey('p256dh');
-    const key = btoa(String.fromCharCode.apply(null, new Uint8Array(rawKey)));
-
+    const key = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
     const rawAuth = sub.getKey('auth');
-    const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(rawAuth)));
+    const auth = btoa(String.fromCharCode(...new Uint8Array(rawAuth)));
 
-    // buat payload sesuai dokumentasi Dicoding
+    // Bentuk payload sesuai API Dicoding
     const payload = {
       endpoint: sub.endpoint,
       keys: {
@@ -36,6 +35,7 @@ export async function subscribeUser(vapidPublicKey) {
     };
 
     const token = window.AUTH_TOKEN || localStorage.getItem('token');
+    console.log('Payload dikirim:', payload);
 
     const res = await fetch('https://story-api.dicoding.dev/v1/notifications/subscribe', {
       method: 'POST',
@@ -46,8 +46,12 @@ export async function subscribeUser(vapidPublicKey) {
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
-    console.log('Subscribe response:', data);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('Server response:', text);
+    } else {
+      console.log('Berhasil subscribe');
+    }
 
     return sub;
   } catch (err) {
@@ -61,7 +65,7 @@ export async function unsubscribeUser() {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub) {
-      await fetch(window.STORY_API_BASE + '/subscriptions/unsubscribe', {
+      await fetch(window.STORY_API_BASE + '/notifications/unsubscribe', {
         method: 'POST',
         headers: {'Content-Type':'application/json', 'Authorization': window.AUTH_TOKEN},
         body: JSON.stringify({endpoint: sub.endpoint})
