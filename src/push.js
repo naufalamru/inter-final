@@ -19,29 +19,28 @@ export async function subscribeUser(vapidPublicKey) {
     });
     console.log('Push subscribed', sub);
 
-    // Ambil key dan ubah ke base64
+    // ambil key dan ubah ke base64
     const rawKey = sub.getKey('p256dh');
     const key = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
     const rawAuth = sub.getKey('auth');
     const auth = btoa(String.fromCharCode(...new Uint8Array(rawAuth)));
 
-    // Bentuk payload sesuai API Dicoding
     const payload = {
       endpoint: sub.endpoint,
-      keys: {
-        p256dh: key,
-        auth: auth
-      }
+      keys: { p256dh: key, auth: auth }
     };
 
-    const token = window.AUTH_TOKEN || localStorage.getItem('token');
+    const rawToken = window.AUTH_TOKEN || localStorage.getItem('token');
+    const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
+
     console.log('Payload dikirim:', payload);
+    console.log('Authorization header:', token);
 
     const res = await fetch('https://story-api.dicoding.dev/v1/notifications/subscribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': token
       },
       body: JSON.stringify(payload)
     });
@@ -62,13 +61,18 @@ export async function subscribeUser(vapidPublicKey) {
 
 export async function unsubscribeUser() {
   try {
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      await fetch(window.STORY_API_BASE + '/notifications/unsubscribe', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Authorization': window.AUTH_TOKEN},
-        body: JSON.stringify({endpoint: sub.endpoint})
+    const rawToken = window.AUTH_TOKEN || localStorage.getItem('token');
+    const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`;
+
+    await fetch(window.STORY_API_BASE + '/notifications/unsubscribe', {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json',
+    'Authorization': token
+  },
+  body: JSON.stringify({ endpoint: sub.endpoint })
+});
+
       }).catch(()=>{});
       await sub.unsubscribe();
       console.log('Push unsubscribed');
